@@ -54,21 +54,14 @@ const db = new Pool({
 // Session Handling
 // ----------------------------
 const PgSession = connectPg(session);
+
 app.use(
   session({
-    store: new PgSession({
-      pool: db, // use the same pg.Pool instance
-      tableName: "session",
-    }),
-    secret: process.env.SESSION_SECRET, // required
+    store: new PgSession({ pool: db, tableName: "session" }),
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    cookie: {
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      httpOnly: true,
-      maxAge: 1000 * 60 * 30, // 30 minutes
-    },
+    cookie: { secure: process.env.NODE_ENV === "production" },
   })
 );
 
