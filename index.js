@@ -41,7 +41,7 @@ function getToday() {
 const { Pool } = pkg;
 const port = process.env.PORT || 3000;
 
-const db = new Pool({
+const pool = new Pool({
   user: process.env.PGUSER,
   host: process.env.PGHOST,
   database: process.env.PGDATABASE,
@@ -49,6 +49,10 @@ const db = new Pool({
   port: parseInt(process.env.PGPORT, 10),
   ssl: { rejectUnauthorized: false },
 });
+pool
+  .connect()
+  .then(() => console.log("✅ Postgres connected"))
+  .catch((err) => console.error("❌ Postgres connection error:", err));
 
 // ----------------------------
 // Session Handling
@@ -57,11 +61,16 @@ const PgSession = connectPg(session);
 
 app.use(
   session({
-    store: new PgSession({ pool: db, tableName: "session" }),
-    secret: process.env.SESSION_SECRET,
+    store: new PgSession({ pool, tableName: "session" }),
+    secret: process.env.SESSION_SECRET || "fallbacksecret",
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: process.env.NODE_ENV === "production" },
+    cookie: {
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      httpOnly: true,
+      maxAge: 1000 * 60 * 30, // 30 minutes
+    },
   })
 );
 
