@@ -1,4 +1,3 @@
-// server.js
 import express from "express";
 import bodyParser from "body-parser";
 import pkg from "pg";
@@ -41,7 +40,7 @@ function getToday() {
 const { Pool } = pkg;
 const port = process.env.PORT || 3000;
 
-const pool = new Pool({
+const db = new Pool({
   user: process.env.PGUSER,
   host: process.env.PGHOST,
   database: process.env.PGDATABASE,
@@ -49,8 +48,7 @@ const pool = new Pool({
   port: parseInt(process.env.PGPORT, 10),
   ssl: { rejectUnauthorized: false },
 });
-pool
-  .connect()
+db.connect()
   .then(() => console.log("✅ Postgres connected"))
   .catch((err) => console.error("❌ Postgres connection error:", err));
 
@@ -61,7 +59,7 @@ const PgSession = connectPg(session);
 
 app.use(
   session({
-    store: new PgSession({ pool, tableName: "session" }),
+    store: new PgSession({ pool: db, tableName: "session" }),
     secret: process.env.SESSION_SECRET || "fallbacksecret",
     resave: false,
     saveUninitialized: false,
